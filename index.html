@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>TypeMaster Pro</title>
+<style>
+:root{--bg:#f4f6f8;--card:#fff;--text:#17202a;--muted:#64748b;--primary:#2563eb;--soft:#e8efff;--good:#16a34a;--bad:#dc2626;--border:#dbe2ea}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:Inter,Arial,sans-serif;background:var(--bg);color:var(--text);min-height:100vh;padding:20px;transition:.25s}
+body.dark{--bg:#101214;--card:#181b1f;--text:#f5f7fa;--muted:#a8b0bb;--soft:#202b45;--border:#303640}
+body.red{--bg:#2b1111;--card:#3b1717;--text:#fff3f3;--muted:#e2bcbc;--primary:#ef4444;--soft:#521d1d;--border:#613030}
+body.grey{--bg:#e5e7eb;--card:#f8fafc;--text:#20252b;--muted:#66717d;--primary:#475569;--soft:#e2e8f0;--border:#cbd5e1}
+button,select,input,textarea{font:inherit}
+button{cursor:pointer}
+.app{max-width:1200px;margin:auto}
+header{display:flex;justify-content:space-between;align-items:center;gap:15px;margin-bottom:18px}
+.brand{font-size:28px;font-weight:800;color:var(--primary)}
+.header-actions{display:flex;gap:8px;flex-wrap:wrap}
+.btn,.select{border:1px solid var(--border);background:var(--card);color:var(--text);padding:9px 13px;border-radius:10px}
+.primary{background:var(--primary);border-color:var(--primary);color:#fff}
+.dashboard{display:grid;grid-template-columns:repeat(5,1fr);gap:12px;margin-bottom:15px}
+.card{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:16px;box-shadow:0 5px 20px #00000008}
+.stat{text-align:center}.stat .value{font-size:28px;font-weight:800;color:var(--primary)}.stat small{color:var(--muted)}
+.controls{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:15px}
+.controls label{color:var(--muted);font-size:13px;display:flex;flex-direction:column;gap:5px}
+.main{display:grid;grid-template-columns:2fr 1fr;gap:15px}
+.typing-card{padding:20px}
+.text-box{min-height:170px;padding:22px;border:2px solid var(--border);border-radius:14px;background:var(--soft);font-size:21px;line-height:1.9;margin-bottom:15px;word-break:break-word}
+.char.correct{color:var(--good)}.char.wrong{color:var(--bad);text-decoration:underline}.char.current{background:#facc15;color:#111;border-radius:3px}
+textarea{width:100%;height:130px;resize:none;border:2px solid var(--primary);border-radius:12px;padding:14px;background:var(--card);color:var(--text);outline:0}
+.actions{display:flex;gap:10px;margin-top:10px}
+.actions button{flex:1}
+.result{display:none;margin-top:14px;padding:18px;border-radius:14px;background:var(--soft)}
+.result h2{color:var(--primary);margin-bottom:8px}
+.side{display:flex;flex-direction:column;gap:15px}
+.panel h3{margin-bottom:12px}.panel p{color:var(--muted);font-size:14px;margin:6px 0}
+.kbd{display:grid;grid-template-columns:repeat(10,1fr);gap:4px;margin-top:8px}
+.key{padding:8px 3px;text-align:center;border:1px solid var(--border);border-radius:6px;background:var(--bg);font-size:11px}
+.key.active{background:var(--primary);color:#fff}
+.chart{width:100%;height:190px;border:1px solid var(--border);border-radius:10px;background:var(--bg)}
+.history{width:100%;border-collapse:collapse;font-size:13px}
+.history th,.history td{padding:8px;border-bottom:1px solid var(--border);text-align:left}
+.history th{color:var(--muted)}
+.badge{display:inline-block;padding:4px 8px;border-radius:999px;background:var(--soft);font-size:12px}
+.streak{font-size:25px;font-weight:800;color:var(--primary)}
+footer{text-align:center;color:var(--muted);padding:18px}
+@media(max-width:900px){.dashboard{grid-template-columns:repeat(3,1fr)}.main{grid-template-columns:1fr}}
+@media(max-width:600px){body{padding:10px}.dashboard{grid-template-columns:repeat(2,1fr)}header{align-items:flex-start}.brand{font-size:22px}.text-box{font-size:17px;min-height:150px}.kbd{grid-template-columns:repeat(10,1fr)}.key{font-size:9px;padding:7px 1px}}
+</style>
+</head>
+<body>
+<div class="app">
+<header>
+<div class="brand">⌨️ TypeMaster Pro</div>
+<div class="header-actions">
+<button class="btn" onclick="cycleTheme()">🎨 Theme</button>
+<button class="btn" onclick="clearHistory()">🗑️ Clear History</button>
+</div>
+</header>
+
+<section class="dashboard">
+<div class="card stat"><div class="value" id="wpm">0</div><small>WPM</small></div>
+<div class="card stat"><div class="value" id="accuracy">100%</div><small>Accuracy</small></div>
+<div class="card stat"><div class="value" id="errors">0</div><small>Errors</small></div>
+<div class="card stat"><div class="value" id="time">60</div><small>Seconds</small></div>
+<div class="card stat"><div class="value" id="best">0</div><small>Best WPM</small></div>
+</section>
+
+<div class="controls">
+<label>Time
+<select class="select" id="duration" onchange="restart()">
+<option value="15">15 sec</option><option value="30">30 sec</option><option value="60" selected>60 sec</option><option value="120">120 sec</option>
+</select></label>
+<label>Difficulty
+<select class="select" id="difficulty" onchange="restart()">
+<option value="easy">Easy</option><option value="medium" selected>Medium</option><option value="hard">Hard</option><option value="expert">Expert</option>
+</select></label>
+<label>Text Mode
+<select class="select" id="textMode" onchange="changeMode()">
+<option value="random">Random Text</option><option value="custom">Custom Text</option>
+</select></label>
+</div>
+
+<div class="main">
+<section class="card typing-card">
+<div class="text-box" id="textDisplay"></div>
+<textarea id="input" disabled placeholder="Click here and start typing..."></textarea>
+<div class="actions">
+<button class="btn primary" onclick="restart()">🔄 Restart</button>
+<button class="btn" onclick="newText()">📝 New Text</button>
+</div>
+<div class="result" id="result">
+<h2>🎉 Test Complete!</h2>
+<p id="resultText"></p>
+</div>
+</section>
+
+<aside class="side">
+<div class="card panel">
+<h3>🔥 Practice Streak</h3>
+<div class="streak" id="streak">0 days</div>
+<p>Complete a test each day to build your streak.</p>
+</div>
+
+<div class="card panel">
+<h3>⌨️ Keyboard</h3>
+<div class="kbd" id="keyboard"></div>
+</div>
+
+<div class="card panel">
+<h3>📈 WPM Progress</h3>
+<canvas class="chart" id="chart"></canvas>
+</div>
+
+<div class="card panel">
+<h3>🏆 Personal Records</h3>
+<p>Best WPM: <b id="best2">0</b></p>
+<p>Best Accuracy: <b id="bestAccuracy">0%</b></p>
+<p>Fewest Errors: <b id="fewestErrors">—</b></p>
+</div>
+</aside>
+</div>
+
+<div class="card panel" style="margin-top:15px">
+<h3>📊 Recent Tests</h3>
+<table class="history">
+<thead><tr><th>Date</th><th>WPM</th><th>Accuracy</th><th>Errors</th><th>Mode</th></tr></thead>
+<tbody id="historyBody"></tbody>
+</table>
+</div>
+
+<footer>TypeMaster Pro • Your typing practice dashboard</footer>
+</div>
+
+<script>
+const texts={
+easy:[
+"The sun is warm and the sky is blue. I like to learn new things every day.",
+"Practice makes progress. Type slowly first and focus on accuracy.",
+"Reading books and writing every day can help you improve your skills."
+],
+medium:[
+"Learning to type quickly and accurately can improve your productivity at school and work.",
+"Technology helps people communicate, create, solve problems, and learn new ideas every day.",
+"Consistent practice is more important than speed when you are building a strong typing habit."
+],
+hard:[
+"Modern applications require careful attention to punctuation, numbers, symbols, and capitalization.",
+"Efficient communication depends on accuracy, concentration, consistency, and the ability to respond quickly.",
+"Programming, research, documentation, and technical writing often require precise keyboard control."
+],
+expert:[
+"const optimize = (speed, accuracy) => Math.round((speed * accuracy) / 100);",
+"Complexity matters: asynchronous systems, APIs, databases, and algorithms require precision under pressure.",
+"Success isn't simply about typing faster; it's about maintaining accuracy while handling punctuation, symbols, and changing context."
+]};
+let selectedText="",timer=null,started=false,finished=false,timeLeft=60,history=JSON.parse(localStorage.getItem("typingHistory")||"[]");
+const input=document.getElementById("input");
+
+function loadKeyboard(){
+const keys="1234567890QWERTYUIOPASDFGHJKLZXCVBNM".split("");
+document.getElementById("keyboard").innerHTML=keys.map(k=>`<div class="key" id="key-${k}">${k}</div>`).join("");
+}
+function pickText(){const a=texts[difficulty.value];return a[Math.floor(Math.random()*a.length)]}
+function renderText(){
+textDisplay.innerHTML="";
+selectedText.split("").forEach((c,i)=>{const s=document.createElement("span");s.className="char"+(i===0?" current":"");s.textContent=c;textDisplay.appendChild(s)});
+}
+function restart(){
+clearInterval(timer);started=false;finished=false;
+timeLeft=Number(duration.value);input.value="";input.disabled=true;
+time.textContent=timeLeft;wpm.textContent="0";accuracy.textContent="100%";errors.textContent="0";
+result.style.display="none";selectedText=pickText();renderText();
+}
+function newText(){restart();input.disabled=false;input.focus()}
+function start(){
+if(started)return;started=true;input.disabled=false;input.focus();
+timer=setInterval(()=>{timeLeft--;time.textContent=timeLeft;stats();if(timeLeft<=0)finish()},1000)
+}
+function stats(){
+const typed=input.value, spans=document.querySelectorAll(".char");let correct=0,err=0;
+spans.forEach((s,i)=>{
+s.classList.remove("correct","wrong","current");
+if(i<typed.length){if(typed[i]===selectedText[i]){s.classList.add("correct");correct++}else{s.classList.add("wrong");err++}}
+if(i===typed.length)s.classList.add("current")
+});
+errors.textContent=err;
+const acc=typed.length?Math.round(correct/typed.length*100):100;accuracy.textContent=acc+"%";
+const elapsed=(Number(duration.value)-timeLeft)/60;
+wpm.textContent=elapsed?Math.round(correct/5/elapsed):0;
+highlightKey(typed.slice(-1));
+}
+function highlightKey(ch){
+document.querySelectorAll(".key").forEach(k=>k.classList.remove("active"));
+if(ch){const el=document.getElementById("key-"+ch.toUpperCase());if(el)el.classList.add("active")}
+}
+input.addEventListener("input",()=>{if(!started)start();stats();if(input.value.length>=selectedText.length)finish()});
+function finish(){
+if(finished)return;finished=true;clearInterval(timer);stats();input.disabled=true;
+const row={date:new Date().toLocaleString(),wpm:Number(wpm.textContent),accuracy:Number(accuracy.textContent.replace("%","")),errors:Number(errors.textContent),mode:difficulty.value};
+history.unshift(row);history=history.slice(0,20);localStorage.setItem("typingHistory",JSON.stringify(history));
+updateRecords();
+result.style.display="block";resultText.textContent=`You typed ${row.wpm} WPM with ${row.accuracy}% accuracy and ${row.errors} errors.`;
+drawChart();
+}
+function updateRecords(){
+const bestVal=Math.max(0,...history.map(x=>x.wpm)),bestAcc=Math.max(0,...history.map(x=>x.accuracy));
+const validErr=history.filter(x=>Number.isFinite(x.errors));const few=validErr.length?Math.min(...validErr.map(x=>x.errors)):null;
+best.textContent=bestVal;best2.textContent=bestVal;bestAccuracy.textContent=bestAcc+"%";fewestErrors.textContent=few===null?"—":few;
+historyBody.innerHTML=history.map(x=>`<tr><td>${x.date}</td><td><b>${x.wpm}</b></td><td>${x.accuracy}%</td><td>${x.errors}</td><td><span class="badge">${x.mode}</span></td></tr>`).join("");
+updateStreak();
+}
+function updateStreak(){
+const days=[...new Set(history.map(x=>new Date(x.date).toDateString()))];
+let streak=0,d=new Date();
+while(days.includes(d.toDateString())){streak++;d.setDate(d.getDate()-1)}
+document.getElementById("streak").textContent=streak+" day"+(streak===1?"":"s");
+}
+function drawChart(){
+const c=document.getElementById("chart"),ctx=c.getContext("2d"),dpr=devicePixelRatio||1;
+const w=c.clientWidth,h=c.clientHeight;c.width=w*dpr;c.height=h*dpr;ctx.scale(dpr,dpr);ctx.clearRect(0,0,w,h);
+const vals=history.slice(0,10).reverse().map(x=>x.wpm);if(!vals.length)return;
+const max=Math.max(20,...vals),pad=20;ctx.beginPath();
+vals.forEach((v,i)=>{const x=pad+i*(w-pad*2)/Math.max(1,vals.length-1),y=h-pad-(v/max)*(h-pad*2);i?ctx.lineTo(x,y):ctx.moveTo(x,y)});
+ctx.strokeStyle=getComputedStyle(document.body).getPropertyValue("--primary");ctx.lineWidth=3;ctx.stroke();
+vals.forEach((v,i)=>{const x=pad+i*(w-pad*2)/Math.max(1,vals.length-1),y=h-pad-(v/max)*(h-pad*2);ctx.beginPath();ctx.arc(x,y,4,0,Math.PI*2);ctx.fillStyle=getComputedStyle(document.body).getPropertyValue("--primary");ctx.fill()})
+}
+function clearHistory(){if(confirm("Delete all typing history?")){history=[];localStorage.removeItem("typingHistory");updateRecords();drawChart()}}
+function cycleTheme(){
+const b=document.body;b.classList.remove("dark","red","grey");
+const current=localStorage.getItem("theme")||"light",next=current==="light"?"dark":current==="dark"?"red":current==="red"?"grey":"light";
+if(next!=="light")b.classList.add(next);localStorage.setItem("theme",next);drawChart()
+}
+function changeMode(){
+if(textMode.value==="custom"){
+const t=prompt("Enter your custom typing text:");
+if(t&&t.trim()){selectedText=t.trim();renderText();input.disabled=false;input.focus()}
+else{textMode.value="random";restart()}
+}else restart()
+}
+loadKeyboard();restart();updateRecords();drawChart();window.addEventListener("resize",drawChart);
+</script>
+</body>
+</html>
